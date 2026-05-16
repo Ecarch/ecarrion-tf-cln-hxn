@@ -1,0 +1,51 @@
+spring:
+  application:
+    name: orderflow
+
+  datasource:
+    # docker run -d --name orderflow-postgres -e POSTGRES_DB=orderflowdb -e POSTGRES_USER=orderflow -e POSTGRES_PASSWORD=orderflow -p 5432:5432 postgres:16-alpine
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/orderflowdb}
+    driver-class-name: org.postgresql.Driver
+    username: ${DB_USERNAME:orderflow}
+    password: ${DB_PASSWORD:orderflow}
+
+  jpa:
+    hibernate:
+      ddl-auto: ${JPA_DDL_AUTO:create-drop}
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8180/realms/orderflow-realm}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        # Exponemos solo health e info en producción. Nunca expongas "env" o "heapdump"
+        include: health,info,metrics
+      base-path: /actuator
+  endpoint:
+    health:
+      # "always": muestra detalles del health (DB, disco...) siempre.
+      # En producción considera "when-authorized" para no revelar info interna.
+      show-details: always
+      # Agrupa los checks: liveness (¿está vivo?) y readiness (¿listo para tráfico?)
+      probes:
+        enabled: true
+  health:
+    livenessState:
+      enabled: true
+    readinessState:
+      enabled: true
+
+logging:
+  level:
+    root: INFO
+    com.mfpe: DEBUG

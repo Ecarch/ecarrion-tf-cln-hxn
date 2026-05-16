@@ -1,0 +1,44 @@
+version: "3.9"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Docker Compose para levantar Keycloak en local
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0.7
+    container_name: orderflow-keycloak
+
+    # Modo de arranque:
+    # - "start-dev": modo desarrollo, sin HTTPS obligatorio, con consola admin
+    # - En producción se usaría "start" con certificados TLS configurados
+    command: start-dev --import-realm --verbose
+
+    environment:
+      # Credenciales del administrador de Keycloak
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+
+      # Base de datos interna (H2) - solo válido en start-dev
+      # En producción se configura con PostgreSQL
+      KC_DB: dev-file
+
+      # Habilita los endpoints de health (/health/ready, /health/live)
+      KC_HEALTH_ENABLED: "true"
+
+    ports:
+      # Puerto local 8180 → puerto interno 8080 de Keycloak
+      # Usamos 8180 para no colisionar con nuestra app (8080)
+      - "8180:8080"
+
+    volumes:
+      # Montamos la configuración del realm para que Keycloak lo importe al arrancar
+      # Esto evita tener que configurar el realm manualmente cada vez
+      - ./keycloak/realms:/opt/keycloak/data/import
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health/ready || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s

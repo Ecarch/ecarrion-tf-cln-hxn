@@ -1,0 +1,70 @@
+{
+  "id": "orderflow-realm",
+  "realm": "orderflow-realm",
+  "enabled": true,
+  "displayName": "OrderFlow Realm",
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "bruteForceProtected": false,
+
+  "clients": [
+    {
+      "clientId": "orderflow-client",
+      "name": "OrderFlow API Client",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "orderflow-secret",
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "standardFlowEnabled": true,
+      "redirectUris": ["*"],
+      "webOrigins": ["*"]
+    }
+  ],
+
+  "roles": {
+    "realm": [
+      {
+        "name": "ADMIN",
+        "description": "Administrador: puede crear, pagar y cancelar órdenes"
+      },
+      {
+        "name": "USER",
+        "description": "Usuario estándar: puede añadir items y pagar"
+      }
+    ]
+  },
+
+  "users": [
+    {
+      "username": "admin-user",
+      "enabled": true,
+      "email": "admin@orderflow.com",
+      "firstName": "Admin",
+      "lastName": "User",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "admin123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["ADMIN"]
+    },
+    {
+      "username": "regular-user",
+      "enabled": true,
+      "email": "user@orderflow.com",
+      "firstName": "Regular",
+      "lastName": "User",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["USER"]
+    }
+  ]
+}
