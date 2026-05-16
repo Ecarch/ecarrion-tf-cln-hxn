@@ -6,6 +6,7 @@ import com.mfpe.model.entity.Order;
 import com.mfpe.model.vo.OrderId;
 import com.mfpe.port.in.PayOrderUseCase;
 import com.mfpe.port.out.FindOrderByIdPort;
+import com.mfpe.port.out.NotificationService;
 import com.mfpe.port.out.PaymentGateway;
 import com.mfpe.port.out.SaveOrderPort;
 
@@ -14,13 +15,16 @@ public class PayOrderService implements PayOrderUseCase {
     private final PaymentGateway paymentGateway;
     private final FindOrderByIdPort findOrderByIdPort;
     private final SaveOrderPort saveOrderPort;
+    private final NotificationService notificationService;
 
     public PayOrderService(PaymentGateway paymentGateway,
                            FindOrderByIdPort findOrderByIdPort,
-                           SaveOrderPort saveOrderPort) {
+                           SaveOrderPort saveOrderPort,
+                           NotificationService notificationService) {
         this.paymentGateway = paymentGateway;
         this.findOrderByIdPort = findOrderByIdPort;
         this.saveOrderPort = saveOrderPort;
+        this.notificationService = notificationService;
     }
 
     @Override
@@ -35,5 +39,6 @@ public class PayOrderService implements PayOrderUseCase {
 
         order.pay();
         saveOrderPort.save(order);
+        notificationService.notifyOrderStatusChange(orderId, order.getStatus());
     }
 }

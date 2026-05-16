@@ -7,6 +7,7 @@ import com.mfpe.port.in.GetOrderByIdUseCase;
 import com.mfpe.port.in.PayOrderUseCase;
 import com.mfpe.port.out.FindOrderByIdPort;
 import com.mfpe.port.out.InventoryService;
+import com.mfpe.port.out.NotificationService;
 import com.mfpe.port.out.PaymentGateway;
 import com.mfpe.port.out.SaveOrderPort;
 import com.mfpe.service.AddItemToOrderService;
@@ -35,14 +36,16 @@ public class UseCaseConfig {
     @Bean
     public PayOrderUseCase payOrderUseCase(PaymentGateway paymentGateway,
                                            FindOrderByIdPort findOrderByIdPort,
-                                           SaveOrderPort saveOrderPort) {
-        return new PayOrderService(paymentGateway, findOrderByIdPort, saveOrderPort);
+                                           SaveOrderPort saveOrderPort,
+                                           NotificationService notificationService) {
+        return new PayOrderService(paymentGateway, findOrderByIdPort, saveOrderPort, notificationService);
     }
 
     @Bean
     public CancelOrderUseCase cancelOrderUseCase(FindOrderByIdPort findOrderByIdPort,
-                                                 SaveOrderPort saveOrderPort) {
-        return new CancelOrderService(findOrderByIdPort, saveOrderPort);
+                                                 SaveOrderPort saveOrderPort,
+                                                 NotificationService notificationService) {
+        return new CancelOrderService(findOrderByIdPort, saveOrderPort, notificationService);
     }
 
     @Bean
