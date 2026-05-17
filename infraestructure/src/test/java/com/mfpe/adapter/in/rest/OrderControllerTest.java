@@ -9,6 +9,7 @@ import com.mfpe.model.entity.OrderItem;
 import com.mfpe.model.enums.OrderStatus;
 import com.mfpe.model.vo.Money;
 import com.mfpe.model.vo.OrderId;
+import com.mfpe.exception.OrderNotFoundException;
 import com.mfpe.port.in.AddItemToOrderUseCase;
 import com.mfpe.port.in.CancelOrderUseCase;
 import com.mfpe.port.in.CreateOrderUseCase;
@@ -211,6 +212,44 @@ class OrderControllerTest {
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
         assertNull(response.getBody());
         verify(cancelOrderUseCase).cancelOrder("order-456");
+    }
+
+    // ── getOrderById ─────────────────────────────────────────────────
+
+    @Test
+    void getOrderById_shouldReturn200WithOrderResponse() {
+        // Arrange
+        Order order = createDomainOrder();
+        OrderResponse orderResponse = createOrderResponse();
+
+        when(getOrderByIdUseCase.getOrderById("550e8400-e29b-41d4-a716-446655440000")).thenReturn(order);
+        when(responseMapper.toResponse(order)).thenReturn(orderResponse);
+
+        // Act
+        ResponseEntity<OrderResponse> response =
+                controller.getOrderById("550e8400-e29b-41d4-a716-446655440000");
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals("customer-1", response.getBody().customerId());
+        verify(getOrderByIdUseCase).getOrderById("550e8400-e29b-41d4-a716-446655440000");
+        verify(responseMapper).toResponse(order);
+    }
+
+    @Test
+    void getOrderById_shouldPropagateExceptionWhenNotFound() {
+        // Arrange
+        String missingId = "00000000-0000-0000-0000-000000000000";
+        when(getOrderByIdUseCase.getOrderById(missingId))
+                .thenThrow(new OrderNotFoundException(missingId));
+
+        // Act & Assert
+        assertThrows(OrderNotFoundException.class,
+                () -> controller.getOrderById(missingId));
+
+        verify(getOrderByIdUseCase).getOrderById(missingId);
+        verify(responseMapper, never()).toResponse(any());
     }
 
 }

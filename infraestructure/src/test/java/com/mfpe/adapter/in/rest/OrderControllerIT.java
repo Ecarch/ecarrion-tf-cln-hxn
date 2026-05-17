@@ -29,6 +29,7 @@ import java.util.List;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -168,6 +169,38 @@ public class OrderControllerIT {
                 .andExpect(status().isNoContent());
 
         verify(cancelOrderUseCase).cancelOrder("order-456");
+    }
+
+    // ── GET /api/orders/{id} ─────────────────────────────────────────
+
+    @Test
+    void getOrderById_shouldReturn200WithOrderResponse() throws Exception {
+        // Arrange
+        Order order = buildOrder("customer-1");
+        OrderResponse response = buildOrderResponse(order);
+
+        when(getOrderByIdUseCase.getOrderById("550e8400-e29b-41d4-a716-446655440000")).thenReturn(order);
+        when(responseMapper.toResponse(order)).thenReturn(response);
+
+        // Act & Assert
+        mockMvc.perform(get("/api/orders/550e8400-e29b-41d4-a716-446655440000"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.customerId").value("customer-1"))
+                .andExpect(jsonPath("$.status").value("PENDING"));
+    }
+
+    @Test
+    void getOrderById_shouldReturn404WhenNotFound() throws Exception {
+        // Arrange
+        String missingId = "00000000-0000-0000-0000-000000000000";
+        when(getOrderByIdUseCase.getOrderById(missingId))
+                .thenThrow(new OrderNotFoundException(missingId));
+
+        // Act & Assert
+        mockMvc.perform(get("/api/orders/" + missingId))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").exists())
+                .andExpect(jsonPath("$.timestamp").exists());
     }
 
 }
